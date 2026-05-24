@@ -71,7 +71,7 @@ jobs:
 
           # Tracking changes for data files and the newly downloaded/cleaned multi-media tracks
           git add reels.json
-          git add videos/
+          git add videos/*.mp4
 
           # Checking tracking delta mutations. If content differs, synchronize immediately
           git diff --cached --quiet || git commit -m "Update scraped reels dataset and downloaded videos [auto]"

@@ -3,3 +3,5 @@
 encrypt.py
 .venv/
 cookies.json
+videos/*.part
+videos/*.ytdl

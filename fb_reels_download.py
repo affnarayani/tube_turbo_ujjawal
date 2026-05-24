@@ -319,24 +319,40 @@ def download_reels_pipeline():
     downloaded_files = glob.glob(os.path.join(OUTPUT_FOLDER, "*.mp4"))
     valid_videos = []
 
+    MAX_FILE_SIZE_BYTES = 99 * 1024 * 1024
+
     for video_file in downloaded_files:
-        ratio = get_video_aspect_ratio(video_file)
-        
-        if ratio is None:
-            print(f"[REMOVE] Deleting corrupted file structure: {video_file}", flush=True)
-            os.remove(video_file)
-            continue
+        try:
+            # 1. Check File Size First (Fast check before probing video)
+            file_size = os.path.getsize(video_file)
+            if file_size > MAX_FILE_SIZE_BYTES:
+                size_in_mb = file_size / (1024 * 1024)
+                print(f"[REMOVE] Deleting heavy file (>99MB) -> {os.path.basename(video_file)} ({size_in_mb:.2f} MB)", flush=True)
+                os.remove(video_file)
+                continue
 
-        # Check aspect ratio with a 2% tolerance margin
-        lower_bound = TARGET_RATIO * (1 - MARGIN)
-        upper_bound = TARGET_RATIO * (1 + MARGIN)
+            # 2. Check Aspect Ratio
+            ratio = get_video_aspect_ratio(video_file)
+            if ratio is None:
+                print(f"[REMOVE] Deleting corrupted file structure: {video_file}", flush=True)
+                os.remove(video_file)
+                continue
 
-        if lower_bound <= ratio <= upper_bound:
-            valid_videos.append(video_file)
-            print(f"[KEEP] Valid 9:16 Video -> {os.path.basename(video_file)} (Ratio: {ratio:.4f})", flush=True)
-        else:
-            print(f"[REMOVE] Deleting non-9:16 content -> {os.path.basename(video_file)} (Ratio: {ratio:.4f})", flush=True)
-            os.remove(video_file)
+            # Check aspect ratio with a 2% tolerance margin
+            lower_bound = TARGET_RATIO * (1 - MARGIN)
+            upper_bound = TARGET_RATIO * (1 + MARGIN)
+
+            if lower_bound <= ratio <= upper_bound:
+                valid_videos.append(video_file)
+                print(f"[KEEP] Valid 9:16 Video -> {os.path.basename(video_file)} (Ratio: {ratio:.4f})", flush=True)
+            else:
+                print(f"[REMOVE] Deleting non-9:16 content -> {os.path.basename(video_file)} (Ratio: {ratio:.4f})", flush=True)
+                os.remove(video_file)
+
+        except Exception as e:
+            print(f"[ERROR] Error processing file {video_file}: {e}", flush=True)
+            if os.path.exists(video_file):
+                os.remove(video_file)
 
     final_count = len(glob.glob(os.path.join(OUTPUT_FOLDER, "*.mp4")))
     print(f"\n[SUCCESS] Pipeline Complete! {final_count} high-res 9:16 reels successfully verified and saved inside '{OUTPUT_FOLDER}/'.", flush=True)
