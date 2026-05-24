@@ -1,0 +1,79 @@
+name: FB Reels Scraper and Downloader
+
+on:
+  workflow_dispatch:  # ✅ Only manual dispatch enabled now
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      # =========================
+      # 1. PULL CODE (With Strict Token Auth)
+      # =========================
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.PAT_TOKEN }}  
+          fetch-depth: 0
+
+      - name: Pull latest changes before run
+        run: |
+          git pull origin main || echo "Already up to date or clean workspace state."
+
+      # =========================
+      # 2. SETUP PYTHON
+      # =========================
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # =========================
+      # 3. INSTALL SYSTEM DEPENDENCIES (FFMPEG)
+      # =========================
+      - name: Install System ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      # =========================
+      # 4. INSTALL PYTHON LIBRARIES
+      # =========================
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright
+        run: |
+          python -m playwright install chromium
+
+      # =========================
+      # 5. EXECUTE MERGED PIPELINE
+      # =========================
+      - name: Run Merge Script
+        env:
+          DECRYPT_KEY: ${{ secrets.DECRYPT_KEY }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: python merge.py
+
+      # =========================
+      # 6. COMMIT & PUSH PERSISTENCE TARGETS
+      # =========================
+      - name: Commit & Push updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Tracking changes for data files and the newly downloaded/cleaned multi-media tracks
+          git add reels.json
+          git add videos/
+
+          # Checking tracking delta mutations. If content differs, synchronize immediately
+          git diff --cached --quiet || git commit -m "Update scraped reels dataset and downloaded videos [auto]"
+          
+          git push

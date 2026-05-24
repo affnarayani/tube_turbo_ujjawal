@@ -1,0 +1,8 @@
+playwright
+requests
+huggingface-hub
+python-dotenv
+cryptography
+playwright-stealth
+yt-dlp
+ffmpeg-python
