@@ -1,4 +1,4 @@
-name: FB Reels Scraper and Downloader
+name: FB Reels Download
 
 on:
   workflow_dispatch:  # ✅ Only manual dispatch enabled now
