@@ -55,11 +55,11 @@ jobs:
       # =========================
       # 5. EXECUTE MERGED PIPELINE
       # =========================
-      - name: Run Merge Script
+      - name: Run Script
         env:
           DECRYPT_KEY: ${{ secrets.DECRYPT_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: python merge.py
+        run: python fb_reels_download.py
 
       # =========================
       # 6. COMMIT & PUSH PERSISTENCE TARGETS

@@ -33,6 +33,8 @@ FACEBOOK_REELS_URL = "https://www.facebook.com/profile.php?id=61573728815021&sk=
 REELS_JSON_FILE = "reels.json"  
 PBKDF2_ITERATIONS = 200_000
 
+MAX_REELS_LIMIT = 100
+
 OUTPUT_FOLDER = "videos"
 TARGET_RATIO = 9 / 16  # 0.5625
 MARGIN = 0.02          # 2% error tolerance margin
@@ -180,11 +182,20 @@ def run():
         print("[STEP] Starting scrolling and scraping...", flush=True)
 
         while True:
-            # ✅ ARIA-BASED FIX: Target elements based on your layout insights
+            # Check if limit reached at loop start
+            if len(scraped_reels) >= MAX_REELS_LIMIT:
+                print(f"[INFO] Reached the maximum limit of {MAX_REELS_LIMIT} reels. Stopping...", flush=True)
+                break
+
+            # ARIA-BASED TARGETING: Extract elements based on layout role
             reel_elements = page.get_by_role("link", name="Reel tile preview").all()
             
             for element in reel_elements:
                 try:
+                    # Instant stop check during item iteration
+                    if len(scraped_reels) >= MAX_REELS_LIMIT:
+                        break
+
                     href = element.get_attribute("href")
                     text = element.inner_text() or ""
                     
@@ -192,7 +203,6 @@ def run():
                         # Clean profile parameters out of the reel link
                         clean_url = href.split("?")[0]
                         
-                        # Full safety fallback if Facebook formats URL with /reel/ instead of /reels/
                         if clean_url not in scraped_reels:
                             scraped_reels.add(clean_url)
                             
@@ -207,6 +217,11 @@ def run():
                             print(f"[FOUND] {clean_url} | Views: {text.strip()}", flush=True)
                 except Exception:
                     continue
+
+            # Break out of outer loop if inside loop triggered the limit
+            if len(scraped_reels) >= MAX_REELS_LIMIT:
+                print(f"[INFO] Reached the maximum limit of {MAX_REELS_LIMIT} reels. Stopping...", flush=True)
+                break
 
             # Smooth viewport scrolling injection
             page.evaluate("window.scrollBy(0, window.innerHeight * 1.2);")
