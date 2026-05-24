@@ -33,7 +33,7 @@ FACEBOOK_REELS_URL = "https://www.facebook.com/profile.php?id=61573728815021&sk=
 REELS_JSON_FILE = "reels.json"  
 PBKDF2_ITERATIONS = 200_000
 
-MAX_REELS_LIMIT = 100
+MAX_REELS_LIMIT = 30
 
 OUTPUT_FOLDER = "videos"
 TARGET_RATIO = 9 / 16  # 0.5625
