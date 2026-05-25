@@ -337,7 +337,7 @@ def run():
         custom_random_wait(15, 30)
 
     except Exception as e:
-        print(f"❌ [CRITICAL RUN ERROR] Script execution failed: {e}", flush=True)
+        print(f"[CRITICAL RUN ERROR] Script execution failed: {e}", flush=True)
         print("[FALLBACK] Script fail ho gayi hai. Backup generic YouTube JSON write kar raha hoon...", flush=True)
         try:
             fallback_data = {
