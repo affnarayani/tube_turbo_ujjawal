@@ -29,11 +29,11 @@ HEADLESS = True
 
 FACEBOOK_COOKIES_FILE = "fb_cookies.json.encrypted"  
 FACEBOOK_BASE_URL = "https://www.facebook.com"  
-FACEBOOK_REELS_URL = "https://www.facebook.com/profile.php?id=61573728815021&sk=reels_tab"  
+FACEBOOK_REELS_URL = "https://www.facebook.com/profile.php?id=100091254387822&sk=reels_tab"  
 REELS_JSON_FILE = "reels.json"  
 PBKDF2_ITERATIONS = 200_000
 
-MAX_REELS_LIMIT = 30
+MAX_REELS_LIMIT = 1500
 
 OUTPUT_FOLDER = "videos"
 TARGET_RATIO = 9 / 16  # 0.5625
