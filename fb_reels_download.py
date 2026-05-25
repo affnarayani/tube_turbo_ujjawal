@@ -5,6 +5,7 @@ import base64
 import random
 import shutil
 import glob
+import sys
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -48,6 +49,25 @@ DECRYPT_KEY = os.getenv("DECRYPT_KEY")
 
 if not DECRYPT_KEY:
     raise RuntimeError("DECRYPT_KEY missing")
+
+# ==============================================================================
+# DUPLICATE URL CHECK (PAGES.TXT)
+# ==============================================================================
+PAGES_FILE = "pages.txt"
+
+if os.path.exists(PAGES_FILE):
+    print(f"[CHECK] Checking if URL exists in '{PAGES_FILE}'...", flush=True)
+    with open(PAGES_FILE, "r", encoding="utf-8") as f:
+        # Saare URLs ko read karke ek set mein store kar rahe hain (whitespaces aur newlines hata kar)
+        existing_urls = {line.strip() for line in f if line.strip()}
+    
+    if FACEBOOK_REELS_URL in existing_urls:
+        print(f"[EXIT] URL '{FACEBOOK_REELS_URL}' already exists in {PAGES_FILE}. Exiting...", flush=True)
+        sys.exit(1)
+    else:
+        print("[OK] URL is new. Proceeding...", flush=True)
+else:
+    print(f"[INFO] '{PAGES_FILE}' not found. Assuming first run and proceeding...", flush=True)
 
 
 # ==============================================================================

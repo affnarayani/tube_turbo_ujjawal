@@ -71,6 +71,7 @@ jobs:
 
           # Tracking changes for data files and the newly downloaded/cleaned multi-media tracks
           git add reels.json
+          git add pages.txt
           git add videos/*.mp4
 
           # Checking tracking delta mutations. If content differs, synchronize immediately

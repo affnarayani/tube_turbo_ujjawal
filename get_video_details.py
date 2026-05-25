@@ -203,14 +203,16 @@ def run():
         chat_input = page.get_by_test_id("chat-input").get_by_role("paragraph")
         
         prompt_text = (
-            "Analyze this video and provide a proper 'title' and 'description'. "
+            "Analyze this video and provide a highly engaging, catchy, and curiosity-driven 'title' and 'description' optimized for YouTube. "
             "STRICTLY follow these formatting and content rules:\n"
             "1. Output MUST be rendered inside a valid markdown code block (code editor format) starting with ```json.\n"
             "2. The structure must ONLY and STRICTLY contain two JSON keys: 'title' and 'description'.\n"
             "3. Do NOT create any separate key or array for hashtags or keywords.\n"
             "4. Put 6 to 12 relevant hashtags inside the 'description' value itself. The hashtags must appear directly at the very end of the description prose without any labels, introduction, introductory text, or intermediate phrases like 'Hashtags:' or 'Keywords:'.\n"
-            "5. STRICTLY DO NOT INCLUDE ANY EMOJIS anywhere in the title, description, or hashtags. Keep the text entirely plain-text and professional.\n"
-            "6. No pre-text, no conversational intro, no post-text outside the code block. Just pure JSON output enclosed in a code block."
+            "5. STRICTLY DO NOT INCLUDE ANY EMOJIS anywhere in the title, description, or hashtags. Keep the text entirely plain-text.\n"
+            "6. No pre-text, no conversational intro, no post-text outside the code block. Just pure JSON output enclosed in a code block.\n"
+            "7. PSYCHOLOGICAL HOOK RULE: Do NOT summarize or spoil the ending/secret of the video. Instead, create a 'curiosity gap'. The title must be clickbait/intriguing, and the description must build intense suspense, forcing the viewer to watch the video to find the answer.\n"
+            "8. CHARACTER LIMITS: The 'title' value MUST be efficient and strictly under 60 to 70 characters (optimized to prevent truncation on mobile screens). The 'description' prose (excluding the hashtags) MUST be concise, powerful, and strictly limited to 150 to 250 characters to maintain a high-impact, fast-reading hook."
         )
         
         chat_input.fill(prompt_text)
