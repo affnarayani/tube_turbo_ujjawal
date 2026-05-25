@@ -124,23 +124,23 @@ def clear_and_create_folder(folder_path):
 
 
 def get_video_aspect_ratio(video_path):
-    """Uses ffprobe to calculate exact dynamic video aspect ratio."""
+    """Uses ffprobe to calculate exact dynamic video aspect ratio and dimensions."""
     try:
         probe = ffmpeg.probe(str(video_path))
         video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
         if not video_stream:
-            return None
+            return None, None, None
         
         width = int(video_stream['width'])
         height = int(video_stream['height'])
         
         if height == 0:
-            return None
+            return None, None, None
             
-        return width / height
+        return width / height, width, height
     except Exception as e:
         print(f"[ERROR] Failed probing metadata for {video_path}: {e}", flush=True)
-        return None
+        return None, None, None
 
 
 # ==============================================================================
@@ -352,9 +352,15 @@ def download_reels_pipeline():
                 continue
 
             # 2. Check Aspect Ratio
-            ratio = get_video_aspect_ratio(video_file)
+            ratio, width, height = get_video_aspect_ratio(video_file)
             if ratio is None:
                 print(f"[REMOVE] Deleting corrupted file structure: {video_file}", flush=True)
+                os.remove(video_file)
+                continue
+
+            # 3. Check Width and Height (Low Resolution Filter)
+            if width < 720 or height < 1280:
+                print(f"[REMOVE] Deleting low-res content -> {os.path.basename(video_file)} ({width}x{height})", flush=True)
                 os.remove(video_file)
                 continue
 
