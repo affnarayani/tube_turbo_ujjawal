@@ -25,7 +25,7 @@ import ffmpeg  # REQUIRED: pip install ffmpeg-python
 # ==============================================================================
 # GLOBAL CONFIGURATIONS (Merged from both scripts)
 # ==============================================================================
-HEADLESS = False
+HEADLESS = True
 
 FACEBOOK_COOKIES_FILE = "fb_cookies.json.encrypted"  
 FACEBOOK_BASE_URL = "https://www.facebook.com"  
