@@ -128,7 +128,7 @@ def get_youtube_channel(org_id):
 
     channels = res.json().get("data", {}).get("channels", [])
 
-    TARGET_CHANNEL_NAME = "Purvanchal Wave"
+    TARGET_CHANNEL_NAME = "Chull Factory"
 
     for c in channels:
         if c.get("service") == "youtube" and c.get("name") == TARGET_CHANNEL_NAME:
