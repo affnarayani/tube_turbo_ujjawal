@@ -69,11 +69,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Pure hard tracking: Sirf fresh video.json aur bache huye mp4s track honge
+          # 1. video.json ko stage karein
           git add video.json
-          git add videos/*.mp4
 
-          # Agar upar dono python files mein se koi bhi crash hui toh yeh push chalega hi nahi
-          git diff --cached --quiet || git commit -m "Update video json state and sync assets [auto]"
-          
-          git push origin main
+          # 2. videos/ folder mein jo bhi files delete hui hain ya bachi hain, unhe track karein
+          # -A ya --all se deletion aur addition dono stage ho jaate hain
+          git add -A videos/
+
+          # 3. Agar koi change hua hai toh commit aur push karein
+          git diff --cached --quiet || (git commit -m "Sync state: Update video.json and remove uploaded assets [auto]" && git push origin main)
