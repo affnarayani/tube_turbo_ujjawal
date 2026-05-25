@@ -217,19 +217,37 @@ def run():
         print("[OK] Upgraded prompt text filled", flush=True)
         custom_random_wait(15, 30)
 
-        # 7. Chat submit button click karna (With 5 Retries logic)
+        # 7. Chat submit button click karna (With 5 Retries and Smart Fallbacks)
         print("[STEP] Attempting to click chat submit button...", flush=True)
         submit_clicked = False
         for attempt in range(1, 6):
             try:
+                # 1st Option: Jo aapka test-id chal raha tha
                 submit_btn = page.get_by_test_id("chat-submit")
+                
+                # 2nd Option (Aapka bataya hua Aria structure): Button jiska naam 'Submit' hai
+                submit_btn_fallback = page.get_by_role("button", name="Submit", exact=True)
+                
                 if submit_btn.is_visible():
                     submit_btn.click()
-                    print(f"[OK] Chat submit button clicked on attempt {attempt}", flush=True)
+                    print(f"[OK] Chat submit button (test-id) clicked on attempt {attempt}", flush=True)
+                    submit_clicked = True
+                    break
+                elif submit_btn_fallback.is_visible():
+                    submit_btn_fallback.click()
+                    print(f"[OK] Chat submit button (ARIA Role 'Submit') clicked on attempt {attempt}", flush=True)
                     submit_clicked = True
                     break
                 else:
-                    print(f"[WARNING] Chat submit button not visible (Attempt {attempt}/5)", flush=True)
+                    # 3rd Option: Agar upar dono nahi mile toh raw HTML selector check karega
+                    submit_selector = page.locator("button:has-text('Submit'), button[type='submit']")
+                    if submit_selector.first.is_visible():
+                        submit_selector.first.click()
+                        print(f"[OK] Chat submit button (Selector Fallback) clicked on attempt {attempt}", flush=True)
+                        submit_clicked = True
+                        break
+                    else:
+                        print(f"[WARNING] Chat submit button not visible anywhere yet (Attempt {attempt}/5)", flush=True)
             except Exception as e:
                 print(f"[WARNING] Error finding submit button (Attempt {attempt}/5): {e}", flush=True)
             
