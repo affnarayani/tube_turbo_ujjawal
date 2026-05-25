@@ -1,4 +1,4 @@
-name: Upload Shorts
+name: Get Details and Upload Shorts
 
 on:
   workflow_dispatch:  # Only manual dispatch enabled
@@ -40,7 +40,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Playwright browser binaries aur unke system dependencies ko install karna zaroori hai
       - name: Install Playwright and System Dependencies
         run: |
           python -m playwright install chromium
@@ -70,13 +69,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Jin files/folders mein badlav ho raha hai unhe stage karna
-          # video.json (Success output) ya video.txt (Fallback output) dono ko track kiya hai
+          # Pure hard tracking: Sirf fresh video.json aur bache huye mp4s track honge
           git add video.json
-          git add video.txt || echo "video.txt not generated"
           git add videos/*.mp4
 
-          # Agar files mein koi change hua hai (jaise video select hone ke baad json update hona) to push karega
-          git diff --cached --quiet || git commit -m "Update video json state and preserve system files [auto]"
+          # Agar upar dono python files mein se koi bhi crash hui toh yeh push chalega hi nahi
+          git diff --cached --quiet || git commit -m "Update video json state and sync assets [auto]"
           
           git push origin main

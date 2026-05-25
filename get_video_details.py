@@ -4,6 +4,7 @@ import time
 import base64
 import random
 import shutil
+import sys
 import requests
 from pathlib import Path
 from typing import List, Dict, Any
@@ -308,17 +309,17 @@ def run():
             print(f"[OK] Fresh data successfully saved to '{OUTPUT_JSON_FILE}'.", flush=True)
 
         except Exception as json_err:
-            print(f"[ERROR] JSON parse/save karne mein issue aaya: {json_err}", flush=True)
-            print("Raw text saved as video.txt instead.", flush=True)
-            with open("video.txt", "w", encoding="utf-8") as f:
-                f.write(generated_text)
+            print(f"[CRITICAL ERROR] JSON parse/save karne mein issue aaya: {json_err}", flush=True)
+            print("[SYS EXIT] Exiting immediately with code 1. Pipeline stopped.", flush=True)
+            sys.exit(1)
 
         # 10. Close browser after waiting 15, 30 seconds
         print("[STEP] Final wait before closing browser (15-30s)...", flush=True)
         custom_random_wait(15, 30)
 
     except Exception as e:
-        print("[ERROR]", e, flush=True)
+        print(f"❌ [CRITICAL RUN ERROR] Script execution failed: {e}", flush=True)
+        sys.exit(1)
 
     finally:
         try:
@@ -343,4 +344,10 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    try:
+        run()
+    except SystemExit as se:
+        sys.exit(se.code)
+    except Exception as final_err:
+        print(f"❌ [FATAL WORKFLOW ERROR]: {final_err}", file=sys.stderr)
+        sys.exit(1)

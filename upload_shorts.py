@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 from dotenv import load_dotenv
@@ -218,18 +219,29 @@ def upload_to_buffer(channel_id, video_url, title, description):
 
 if __name__ == "__main__":
 
-    # JSON file se details read karna
     json_path = "video.json"
+    
+    # 🚨 [HARDCORE SYSTEM 1 CHECK] Agar file hi missing hai toh turant fatal exit
     if not os.path.exists(json_path):
-        print(f"❌ JSON file missing: {json_path}")
-        exit()
+        print(f"❌ [FATAL] '{json_path}' missing! Previous step failed or did not generate output.", file=sys.stderr)
+        sys.exit(1)
 
-    with open(json_path, "r", encoding="utf-8") as f:
-        video_data = json.load(f)
+    # 🚨 [HARDCORE PARSING CHECK] Agar json file khali hai ya corrupt hai toh fatal exit
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            video_data = json.load(f)
+    except Exception as e:
+        print(f"❌ [FATAL] JSON corruption/parsing failed: {e}", file=sys.stderr)
+        sys.exit(1)
 
     video_file_name = video_data.get("filename")
     video_title = video_data.get("title")
     video_description = video_data.get("description")
+
+    # Double safeguard: Agar data load ho gaya par keys hi khali hain
+    if not video_file_name or not video_title:
+        print("❌ [FATAL] Critical data fields missing inside video.json", file=sys.stderr)
+        sys.exit(1)
 
     # Videos folder se path mapping
     file_path = os.path.join(VIDEOS_FOLDER, video_file_name)
@@ -237,17 +249,31 @@ if __name__ == "__main__":
     # 1. Org
     org_id = get_org_id()
     if not org_id:
-        exit()
+        print("❌ [FATAL] Failed to retrieve Organization ID", file=sys.stderr)
+        sys.exit(1)
 
     # 2. Channel
     channel_id = get_youtube_channel(org_id)
     if not channel_id:
-        exit()
+        print("❌ [FATAL] Failed to retrieve YouTube Channel ID", file=sys.stderr)
+        sys.exit(1)
 
     # 3. Upload to tmpfile.link
     video_url = upload_to_tmpfile(file_path)
     if not video_url:
-        exit()
+        print("❌ [FATAL] File upload to tmpfile.link failed", file=sys.stderr)
+        sys.exit(1)
 
     # 4. Buffer upload
     upload_to_buffer(channel_id, video_url, video_title, video_description)
+
+    # 5. SUCCESS AND AUTO-DELETE LOGIC
+    print(f"\n[CLEANUP] Post successful! Attempting to delete uploaded video file: {video_file_name}")
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            print(f"🗑️ [DELETED] '{video_file_name}' successfully removed from '{VIDEOS_FOLDER}' folder.", flush=True)
+        except Exception as delete_err:
+            print(f"⚠️ [WARNING] Video upload toh ho gaya par file delete nahi ho payi: {delete_err}", flush=True)
+    else:
+        print(f"⚠️ [WARNING] Target file '{video_file_name}' delete karne ke liye nahi mili.")
