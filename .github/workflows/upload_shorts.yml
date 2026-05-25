@@ -1,6 +1,9 @@
 name: Get Details and Upload Shorts
 
 on:
+  schedule:
+    - cron: '30 18 * * *'
+    - cron: '30 0 * * *'
   workflow_dispatch:  # Only manual dispatch enabled
 
 env:
