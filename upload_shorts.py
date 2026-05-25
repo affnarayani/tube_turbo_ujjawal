@@ -1,4 +1,5 @@
 import os
+import json
 import requests
 from dotenv import load_dotenv
 
@@ -21,11 +22,7 @@ HEADERS = {
 }
 
 VIDEOS_FOLDER = "videos"
-VIDEO_FILE_NAME = "my_short_video.mp4"
-
-VIDEO_TITLE = "Mera Automated Short"
-VIDEO_DESCRIPTION = "Buffer GraphQL + tmpfile.link uploader system"
-YOUTUBE_CATEGORY_ID = "22"
+YOUTUBE_CATEGORY_ID = "24"
 
 UPLOAD_ENDPOINT = "https://tmpfile.link/api/upload"
 
@@ -130,9 +127,11 @@ def get_youtube_channel(org_id):
 
     channels = res.json().get("data", {}).get("channels", [])
 
+    TARGET_CHANNEL_NAME = "Purvanchal Wave"
+
     for c in channels:
-        if c.get("service") == "youtube":
-            print("✅ YouTube Channel:", c["name"])
+        if c.get("service") == "youtube" and c.get("name") == TARGET_CHANNEL_NAME:
+            print("✅ Targeted YouTube Channel Found:", c["name"])
             return c["id"]
 
     print("❌ No YouTube channel found")
@@ -143,7 +142,7 @@ def get_youtube_channel(org_id):
 # BUFFER POST (FIXED FINAL WORKING VERSION)
 # =========================================================
 
-def upload_to_buffer(channel_id, video_url):
+def upload_to_buffer(channel_id, video_url, title, description):
 
     print("📤 Sending to Buffer...")
 
@@ -182,9 +181,9 @@ def upload_to_buffer(channel_id, video_url):
 
     variables = {
         "channelId": channel_id,
-        "text": f"{VIDEO_TITLE}\n\n{VIDEO_DESCRIPTION} #Shorts",
+        "text": f"{title}\n\n{description} #Shorts",
         "videoUrl": video_url,
-        "title": VIDEO_TITLE,
+        "title": title,
         "categoryId": YOUTUBE_CATEGORY_ID
     }
 
@@ -219,7 +218,21 @@ def upload_to_buffer(channel_id, video_url):
 
 if __name__ == "__main__":
 
-    file_path = os.path.join(VIDES_FOLDER if False else VIDEOS_FOLDER, VIDEO_FILE_NAME)
+    # JSON file se details read karna
+    json_path = "video.json"
+    if not os.path.exists(json_path):
+        print(f"❌ JSON file missing: {json_path}")
+        exit()
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        video_data = json.load(f)
+
+    video_file_name = video_data.get("filename")
+    video_title = video_data.get("title")
+    video_description = video_data.get("description")
+
+    # Videos folder se path mapping
+    file_path = os.path.join(VIDEOS_FOLDER, video_file_name)
 
     # 1. Org
     org_id = get_org_id()
@@ -237,4 +250,4 @@ if __name__ == "__main__":
         exit()
 
     # 4. Buffer upload
-    upload_to_buffer(channel_id, video_url)
+    upload_to_buffer(channel_id, video_url, video_title, video_description)

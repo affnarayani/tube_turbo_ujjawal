@@ -1,0 +1,82 @@
+name: Upload Shorts
+
+on:
+  workflow_dispatch:  # Only manual dispatch enabled
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      # =========================
+      # 1. PULL CODE (With Strict Token Auth)
+      # =========================
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.PAT_TOKEN }}  
+          fetch-depth: 0
+
+      - name: Pull latest changes before run
+        run: |
+          git pull origin main || echo "Already up to date or clean workspace state."
+
+      # =========================
+      # 2. SETUP PYTHON
+      # =========================
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # =========================
+      # 3. INSTALL PYTHON LIBRARIES
+      # =========================
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Playwright browser binaries aur unke system dependencies ko install karna zaroori hai
+      - name: Install Playwright and System Dependencies
+        run: |
+          python -m playwright install chromium
+          python -m playwright install-deps chromium
+
+      # =========================
+      # 4. STEP 1: GET VIDEO DETAILS (Grok Automation)
+      # =========================
+      - name: Run Get Video Details
+        env:
+          DECRYPT_KEY: ${{ secrets.DECRYPT_KEY }}
+        run: python get_video_details.py
+
+      # =========================
+      # 5. STEP 2: UPLOAD SHORTS TO BUFFER
+      # =========================
+      - name: Run Upload Shorts
+        env:
+          BUFFER_KEY: ${{ secrets.BUFFER_KEY }}
+        run: python upload_shorts.py
+
+      # =========================
+      # 6. COMMIT & PUSH PERSISTENCE TARGETS
+      # =========================
+      - name: Commit & Push updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Jin files/folders mein badlav ho raha hai unhe stage karna
+          # video.json (Success output) ya video.txt (Fallback output) dono ko track kiya hai
+          git add video.json
+          git add video.txt || echo "video.txt not generated"
+          git add videos/*.mp4
+
+          # Agar files mein koi change hua hai (jaise video select hone ke baad json update hona) to push karega
+          git diff --cached --quiet || git commit -m "Update video json state and preserve system files [auto]"
+          
+          git push origin main
